@@ -12,8 +12,14 @@ class GetBuyItemsCommand : BaseCommand() {
 
     @Default
     fun main(player: Player) {
-        val amount = service.getUser(player.name)
-        player.sendMessage("Ваш баланс ${amount}, выдаём покупки")
-        service.giveItems(player, amount)
+        val payments = service.getUserPayments(player.name)
+
+        if (payments.isNotEmpty()) {
+            val paymentsGived = service.giveItems(player, payments)
+            player.sendMessage("Вам было выдано ${paymentsGived.size} заказов")
+        } else {
+            player.sendMessage("У вас нет заказов, ожидающих выдачи...")
+        }
+
     }
 }

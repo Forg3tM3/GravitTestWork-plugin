@@ -1,6 +1,6 @@
 package gravittestwork
 
-import gravittestwork.dto.UpdateBalanceInput
+import gravittestwork.dto.Payment
 import gravittestwork.utils.Requester
 import org.bukkit.Material
 import org.bukkit.enchantments.Enchantment
@@ -26,38 +26,41 @@ class GravitTestWorkService {
         150 to ::armorCurse,
         300 to ::giveStar
     )
-    private fun rand(amount: Int) : Float {
+
+    private fun rand(amount: Int): Float {
         val min = amount - 3
         val max = amount + 3
 
         return (min..max).random().toFloat()
     }
 
-    fun getUser(username: String): Float {
+    fun getUserPayments(username: String): Array<Payment> {
         return requester.get("${config.url}/payments/byUsername/${username}").getOrThrow()
     }
 
-    fun giveItems(player: Player, amount: Float) {
-        var amountMutable = amount
+    fun giveItems(player: Player, payments: Array<Payment>): Array<Payment> {
+        for (payment in payments) {
+            var amountMutable = payment.amount
 
-        loop@ while (true) {
-            for (action in rewards.entries.reversed()) {
-                val random = rand(action.key)
+            loop@ while (true) {
+                for (action in rewards.entries.shuffled()) {
+                    val random = rand(action.key)
 
-                if (random > amountMutable)
-                    if (action.key == rewards.keys.first())
-                        break@loop;
-                    else
+                    if (random > amountMutable)
+                        if (action.key == rewards.keys.first())
+                            break@loop;
+                        else
+                            continue
+                    else {
+                        amountMutable -= random
+                        action.value.invoke(player)
                         continue
-                else {
-                    amountMutable -= random
-                    action.value.invoke(player)
-                    break
+                    }
                 }
             }
         }
 
-        requester.patch("${config.url}/payments/byUsername", UpdateBalanceInput(player.name, amountMutable))
+        return requester.delete("${config.url}/payments/${payments.map { it.id }.joinToString(",")}").getOrThrow()
     }
 
     fun giveStick(player: Player) {
@@ -102,7 +105,7 @@ class GravitTestWorkService {
     }
 
     fun invisible(player: Player) {
-        val potion = PotionEffect(PotionEffectType.INVISIBILITY,  (60 * 60) * 20, 1)
+        val potion = PotionEffect(PotionEffectType.INVISIBILITY, (60 * 60) * 20, 1)
         player.addPotionEffect(potion)
     }
 

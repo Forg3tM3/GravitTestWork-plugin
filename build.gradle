@@ -1,0 +1,35 @@
+plugins {
+    id "com.github.johnrengelman.shadow" version "2.0.4"
+    id 'org.jetbrains.kotlin.jvm' version '1.6.10'
+}
+
+group 'gravittestwork'
+version '1.0.0'
+
+repositories {
+    mavenCentral()
+    maven { url = "https://hub.spigotmc.org/nexus/content/repositories/snapshots/" }
+    maven { url = "https://repo.aikar.co/content/groups/aikar/" }
+}
+
+dependencies {
+    implementation "com.squareup.okhttp3:okhttp:4.9.3"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib"
+    implementation 'com.google.code.gson:gson:2.9.0'
+    implementation('co.aikar:acf-bukkit:0.5.1-SNAPSHOT')
+
+    compileOnly "org.spigotmc:spigot-api:1.12.2-R0.1-SNAPSHOT"
+}
+
+shadowJar {
+    archiveClassifier.set('')
+
+    relocate 'com.google.gson', 'gravittestwork.libs.gson'
+    relocate 'okhttp3', 'gravittestwork.libs.okhttp3'
+    relocate 'co.aikar.commands', 'gravittestwork.libs.acf'
+    relocate 'co.aikar.locales', 'gravittestwork.libs.locales'
+}
+
+artifacts {
+    archives shadowJar
+}
